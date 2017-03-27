@@ -24,7 +24,7 @@ public class ZipCodeDatabase {
         }
 
         if (queriedZipCode == null) {
-            throw new Exception("Zip code not found");
+            throw new Exception("Zip code " + zip + " not found");
         }
 
         return queriedZipCode;
@@ -121,15 +121,21 @@ public class ZipCodeDatabase {
             // continue while there is more data to read
             while (inputFileStream.hasNext()) {
                 // read five data elements
-                int zipCode = inputFileStream.nextInt();
-                String city = inputFileStream.next();
-                String state = inputFileStream.next();
-                double latitude = inputFileStream.nextDouble();
+                int zip      = inputFileStream.nextInt();
+                String city      = inputFileStream.next();
+                String state     = inputFileStream.next();
+                double latitude  = inputFileStream.nextDouble();
                 double longitude = inputFileStream.nextDouble();
 
-                this.zipCodes.add(
-                    new ZipCode(zipCode, city, state, latitude, longitude)
+                ZipCode zipCode = new ZipCode(
+                    zip,
+                    city,
+                    state,
+                    latitude,
+                    longitude
                 );
+
+                this.zipCodes.add(zipCode);
             }
 
             fileByteStream.close();

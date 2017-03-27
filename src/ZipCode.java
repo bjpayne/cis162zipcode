@@ -9,16 +9,24 @@ public class ZipCode {
 
     private double longitude;
 
-    public ZipCode(int zipCode) {
+    public ZipCode(final int zipCode) {
         this.zipCode = zipCode;
     }
 
+    /**
+     * ZipCode constructor.
+     * @param zipCode - Zip code
+     * @param city - City
+     * @param state - State
+     * @param latitude - Lat
+     * @param longitude - Long
+     */
     public ZipCode(
-        int zipCode,
-        String city,
-        String state,
-        double latitude,
-        double longitude
+        final int zipCode,
+        final String city,
+        final String state,
+        final double latitude,
+        final double longitude
     ) {
         this.zipCode = zipCode;
 
