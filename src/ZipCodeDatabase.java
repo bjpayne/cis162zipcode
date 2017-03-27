@@ -31,12 +31,6 @@ public class ZipCodeDatabase {
     }
 
     public int distance(final int zip1, final int zip2) {
-        // convert both latitudes and longitudes from degrees to radians
-        // p1 = cos(lat1) * cos(long1) * cos(lat2) * cos(long2)
-        // p2 = cos(lat1) * sin(long1) * cos(lat2) * sin(long2)
-        // p3 = sin(lat1) * sin(lat2)
-        // distance = arccos(p1+p2+p3) * EARTH_RADIUS
-
         try {
             ZipCode zipCode1 = this.findZip(zip1);
 

@@ -140,11 +140,14 @@ public class ZipCodeGUI extends JFrame implements ActionListener {
 
         searchButton.addActionListener((final ActionEvent event) -> {
             try {
+                String name = nameField.getText();
 
+                database.search(name);
             } catch (Exception e) {
-
+                results.setText(e.getMessage());
             }
         });
+
         // furthestButton.addActionListener(this);
 
         // Create a File menu with two menu items
