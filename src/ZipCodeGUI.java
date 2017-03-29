@@ -257,7 +257,7 @@ public class ZipCodeGUI extends JFrame implements ActionListener {
                 throw new Exception("Enter a name");
             }
 
-            ArrayList<ZipCode> zipCodes = database.search(name);
+            ArrayList<ZipCode> zipCodes = database.search(name.toUpperCase());
 
             String output = "";
 
