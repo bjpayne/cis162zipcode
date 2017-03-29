@@ -445,6 +445,7 @@ public class ZipCodeGUI extends JFrame implements ActionListener {
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             String filename = fc.getSelectedFile().getName();
             database.readZipCodeData(filename);
+            results.setText("New data file loaded");
         }
     }
 

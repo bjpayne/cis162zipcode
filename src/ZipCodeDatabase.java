@@ -180,4 +180,12 @@ public class ZipCodeDatabase {
             System.out.println(e.getMessage());
         }
     }
+
+    /**
+     * Get the db ZipCodes
+     * @return ArrayList
+     */
+    public ArrayList<ZipCode> getZipCodes() {
+        return zipCodes;
+    }
 }
