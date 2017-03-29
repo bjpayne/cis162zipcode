@@ -3,10 +3,6 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 /*************************************************************
  * GUI for a Zip Code Database.
@@ -121,8 +117,10 @@ public class ZipCodeGUI extends JFrame implements ActionListener {
         loc.insets.bottom = 20;
         add(new JLabel("Choices"), loc);
 
+        // Generate the form fields
         generateFields();
 
+        // Generate the form buttons
         generateButtons();
 
         // register the button action listeners
@@ -130,25 +128,21 @@ public class ZipCodeGUI extends JFrame implements ActionListener {
             calculateDistance()
         );
 
-        findButton.addActionListener((final ActionEvent event) -> {
-            findZipCode();
-        });
+        findButton.addActionListener((final ActionEvent event) ->
+            findZipCode()
+        );
 
-        radiusButton.addActionListener((final ActionEvent event) -> {
-            searchWithinRadius();
-        });
+        radiusButton.addActionListener((final ActionEvent event) ->
+            searchWithinRadius()
+        );
 
-        searchButton.addActionListener((final ActionEvent event) -> {
-            try {
-                String name = nameField.getText();
+        searchButton.addActionListener((final ActionEvent event) ->
+            searchByZipCodeName()
+        );
 
-                database.search(name);
-            } catch (Exception e) {
-                results.setText(e.getMessage());
-            }
-        });
-
-        // furthestButton.addActionListener(this);
+        furthestButton.addActionListener((final ActionEvent event) ->
+            findFurthest()
+        );
 
         // Create a File menu with two menu items
         fileMenu = new JMenu("File");
@@ -160,31 +154,72 @@ public class ZipCodeGUI extends JFrame implements ActionListener {
         setJMenuBar(menus);
         menus.add(fileMenu);
 
-        // FIX ME: set the action listeners for the menu items
-        quitItem.addActionListener(this);
-        openItem.addActionListener(this);
+        // Add menu item event listeners
+        openItem.addActionListener((ActionEvent event) -> this.openFile());
+        quitItem.addActionListener((ActionEvent evt) -> System.exit(0));
     }
 
+    /**
+     * Calculate the distance between Zip 1 and 2
+     */
+    private void calculateDistance() {
+        try {
+            results.setText("Calculating...");
+            results.paintImmediately(results.getVisibleRect());
+
+            int zip1 = this.checkValidInteger(zip1Field.getText());
+            int zip2 = this.checkValidInteger(zip2Field.getText());
+
+            ZipCode zipCode1 = database.findZip(zip1);
+            ZipCode zipCode2 = database.findZip(zip2);
+
+            int distance = database.distance(
+                zipCode1.getZipCode(),
+                zipCode2.getZipCode()
+            );
+
+            String result = "The distance between" + System.lineSeparator();
+            result += zipCode1 + " and " + System.lineSeparator();
+            result += zipCode2 + " is ";
+            result += distance + " miles.";
+
+            results.setText(result);
+            System.out.println("Finished");
+        } catch (ZipCodeNotFoundException e) {
+            results.setText(e.getMessage());
+        } catch (Exception e) {
+            results.setText("An error has occured.");
+        }
+    }
+
+    /**
+     * Find the zip code data by Zip Code
+     */
     private void findZipCode() {
         try {
-            int zip = Integer.parseInt(zip1Field.getText());
+            int zip = this.checkValidInteger(zip1Field.getText());
 
             ZipCode zipCode = database.findZip(zip);
 
             results.setText(zipCode.toString());
-        } catch (Exception e) {
+        } catch (ZipCodeNotFoundException e) {
             results.setText(e.getMessage());
+        } catch (Exception e) {
+            results.setText("An error has occurred.");
         }
     }
 
+    /**
+     * Find all zip codes within a certain radius
+     */
     private void searchWithinRadius() {
         try {
             results.setText("Searching...");
             results.paintImmediately(results.getVisibleRect());
 
-            final int zip1 = Integer.parseInt(zip1Field.getText());
+            final int zip1 = this.checkValidInteger(zip1Field.getText());
 
-            final int radius = Integer.parseInt(radiusField.getText());
+            final int radius = this.checkValidInteger(radiusField.getText());
 
             ArrayList<ZipCode> zipCodes = database.withinRadius(
                 zip1,
@@ -208,6 +243,66 @@ public class ZipCodeGUI extends JFrame implements ActionListener {
         }
     }
 
+    private void searchByZipCodeName() {
+        try {
+            results.setText("Searching...");
+            results.paintImmediately(results.getVisibleRect());
+
+            String name = nameField.getText();
+
+            ArrayList<ZipCode> zipCodes = database.search(name);
+
+            String output = "";
+
+            output += "ZipCodes that contain '" + name + "':";
+            output += System.lineSeparator();
+
+            for (ZipCode zipCode : zipCodes) {
+                output += zipCode + System.lineSeparator();
+            }
+
+            output += "Total: " + zipCodes.size();
+
+            results.setText(output);
+        } catch (Exception e) {
+            results.setText(e.getMessage());
+        }
+    }
+
+    /**
+     * Find the furthest Zip Code away from Zip Code 1
+     */
+    private void findFurthest() {
+        try {
+            results.setText("Calculating...");
+            results.paintImmediately(results.getVisibleRect());
+
+            int zip1 = this.checkValidInteger(zip1Field.getText());
+
+            ZipCode zipCode = database.findZip(zip1);
+
+            ZipCode farthestZipCode = database.findFurthest(zip1);
+
+            int distance = database.distance(
+                zip1,
+                farthestZipCode.getZipCode()
+            );
+
+            String output = "The distance between" + System.lineSeparator();
+            output += zipCode + " and" + System.lineSeparator();
+            output += farthestZipCode + " is " + distance + " miles";
+
+            results.setText(output);
+        } catch (ZipCodeNotFoundException e) {
+            results.setText(e.getMessage());
+        } catch (Exception e) {
+            results.setText("An error has occured.");
+        }
+    }
+
+    /**
+     * Generate the for fields
+     */
     private void generateFields() {
         GridBagConstraints loc;// Zip Code 1 label
         loc = new GridBagConstraints();
@@ -274,35 +369,13 @@ public class ZipCodeGUI extends JFrame implements ActionListener {
         add(nameField, loc);
     }
 
-    private void calculateDistance() {
-        try {
-            System.out.println("Running...");
-            int zip1 = Integer.parseInt(zip1Field.getText());
-            int zip2 = Integer.parseInt(zip2Field.getText());
-
-            ZipCode zipCode1 = database.findZip(zip1);
-            ZipCode zipCode2 = database.findZip(zip2);
-
-            int distance = database.distance(
-                zipCode1.getZipCode(),
-                zipCode2.getZipCode()
-            );
-
-            String result = "The distance between" + System.lineSeparator();
-            result += zipCode1 + " and " + System.lineSeparator();
-            result += zipCode2 + " is ";
-            result += distance + " miles.";
-
-            results.setText(result);
-            System.out.println("Finished");
-        } catch (Exception e) {
-            results.setText(e.getMessage());
-        }
-    }
-
+    /**
+     * Generate the form buttons
+     */
     private void generateButtons() {
         GridBagConstraints loc;
 
+        // Distance between Zip 1 and 2
         loc = new GridBagConstraints();
         loc.gridx = 2;
         loc.gridy = 6;
@@ -311,6 +384,7 @@ public class ZipCodeGUI extends JFrame implements ActionListener {
         distanceButton = new JButton("Distance between Zip 1 and 2");
         add(distanceButton, loc);
 
+        // Find zip 1
         loc = new GridBagConstraints();
         loc.gridx = 2;
         loc.gridy = 7;
@@ -319,6 +393,7 @@ public class ZipCodeGUI extends JFrame implements ActionListener {
         findButton = new JButton("Find Zip 1");
         add(findButton, loc);
 
+        // Find a Zip Codes within radius of Zip 1
         loc = new GridBagConstraints();
         loc.gridx = 2;
         loc.gridy = 8;
@@ -327,6 +402,7 @@ public class ZipCodeGUI extends JFrame implements ActionListener {
         radiusButton = new JButton("Within radius of Zip 1");
         add(radiusButton, loc);
 
+        // Search zip codes by name.
         loc = new GridBagConstraints();
         loc.gridx = 2;
         loc.gridy = 9;
@@ -335,6 +411,7 @@ public class ZipCodeGUI extends JFrame implements ActionListener {
         searchButton = new JButton("Search by name");
         add(searchButton, loc);
 
+        // Find the farthest zip codes
         loc = new GridBagConstraints();
         loc.gridx = 2;
         loc.gridy = 10;
@@ -342,55 +419,6 @@ public class ZipCodeGUI extends JFrame implements ActionListener {
         loc.insets = BUTTON_PADDING;
         furthestButton = new JButton("Furthest from Zip 1");
         add(furthestButton, loc);
-    }
-
-    /*****************************************************************
-     * This method is called when any button is clicked.  The proper
-     * internal method is called as needed.
-     *
-     * @param e the event that was fired
-     ****************************************************************/
-    public void actionPerformed(final ActionEvent e) {
-        System.out.println(e.getSource());
-    }
-
-    /*****************************************************************
-     * Search city and state for any match
-     ****************************************************************/
-    private void searchByName() {
-
-        // retrieve the zip codes with the matching String
-        ArrayList<ZipCode> list = database.search(nameField.getText());
-
-        // dislay the results
-        results.setText("city / states that contain '" + nameField.getText() + "'\n\n");
-        for (ZipCode z : list) {
-            results.append(z + "\n");
-        }
-        results.append("\nTotal: " + list.size());
-    }
-
-    /*****************************************************************
-     * find a zip code
-     ****************************************************************/
-    private void findZip() {
-        try {
-            if (checkValidInteger(zip1Field.getText(), "Zip 1")) {
-                int z1 = Integer.parseInt(zip1Field.getText());
-
-                // search for the zip code
-                ZipCode z = database.findZip(z1);
-
-                // if no zip code found
-                if (z == null) {
-                    results.setText("no city found with zip code " + z1);
-                } else {
-                    results.setText(z.toString());
-                }
-            }
-        } catch (Exception e) {
-            System.out.print(e.getMessage());
-        }
     }
 
     /*****************************************************************
@@ -417,20 +445,24 @@ public class ZipCodeGUI extends JFrame implements ActionListener {
      * an appropriate warning if it is not valid.
      *
      * @param numStr - the String to be checked
-     * @param label - the textfield name that contains the String
      * @return true if valid
      ****************************************************************/
-    private boolean checkValidInteger(final String numStr, final String label) {
-        boolean isValid = true;
+    private int checkValidInteger(final String numStr) {
         try {
-            int val = Integer.parseInt(numStr);
-
-            // display error message if not a valid integer    
+            return Integer.parseInt(numStr);
         } catch (NumberFormatException e) {
-            isValid = false;
-            JOptionPane.showMessageDialog(this, "Enter an integer in " + label);
+            JOptionPane.showMessageDialog(this, "Enter an integer");
 
+            return -1;
         }
-        return isValid;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent event) {
+        try {
+            throw new Exception("Avoid god methods.");
+        } catch (Exception e) {
+            results.setText(e.getMessage());
+        }
     }
 }
