@@ -184,7 +184,6 @@ public class ZipCodeGUI extends JFrame implements ActionListener {
             result += distance + " miles.";
 
             results.setText(result);
-            System.out.println("Finished");
         } catch (ZipCodeNotFoundException e) {
             results.setText("Zip code not found.");
         } catch (Exception e) {
