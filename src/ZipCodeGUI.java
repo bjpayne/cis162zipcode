@@ -68,7 +68,7 @@ public class ZipCodeGUI extends JFrame implements ActionListener {
 
     /*****************************************************************
      * Main Method.
-     * @param args
+     * @param args - main method arguments.
      ****************************************************************/
     public static void main(final String[] args) {
         ZipCodeGUI gui = new ZipCodeGUI();
@@ -167,8 +167,8 @@ public class ZipCodeGUI extends JFrame implements ActionListener {
             results.setText("Calculating...");
             results.paintImmediately(results.getVisibleRect());
 
-            int zip1 = this.checkValidInteger(zip1Field.getText());
-            int zip2 = this.checkValidInteger(zip2Field.getText());
+            int zip1 = this.checkValidInteger(zip1Field, "Zip 1");
+            int zip2 = this.checkValidInteger(zip2Field, "Zip 2");
 
             ZipCode zipCode1 = database.findZip(zip1);
             ZipCode zipCode2 = database.findZip(zip2);
@@ -186,9 +186,9 @@ public class ZipCodeGUI extends JFrame implements ActionListener {
             results.setText(result);
             System.out.println("Finished");
         } catch (ZipCodeNotFoundException e) {
-            results.setText(e.getMessage());
+            results.setText("Zip code not found.");
         } catch (Exception e) {
-            results.setText("An error has occured.");
+            results.setText(e.getMessage());
         }
     }
 
@@ -197,15 +197,15 @@ public class ZipCodeGUI extends JFrame implements ActionListener {
      */
     private void findZipCode() {
         try {
-            int zip = this.checkValidInteger(zip1Field.getText());
+            final int zip = this.checkValidInteger(zip1Field, "Zip 1");
 
-            ZipCode zipCode = database.findZip(zip);
+            final ZipCode zipCode = database.findZip(zip);
 
             results.setText(zipCode.toString());
         } catch (ZipCodeNotFoundException e) {
-            results.setText(e.getMessage());
+            results.setText("Zip code not found.");
         } catch (Exception e) {
-            results.setText("An error has occurred.");
+            results.setText(e.getMessage());
         }
     }
 
@@ -214,12 +214,12 @@ public class ZipCodeGUI extends JFrame implements ActionListener {
      */
     private void searchWithinRadius() {
         try {
-            results.setText("Searching...");
+            results.setText("Calculating...");
             results.paintImmediately(results.getVisibleRect());
 
-            final int zip1 = this.checkValidInteger(zip1Field.getText());
+            final int zip1 = this.checkValidInteger(zip1Field, "Zip 1");
 
-            final int radius = this.checkValidInteger(radiusField.getText());
+            final int radius = this.checkValidInteger(radiusField, "Radius");
 
             ArrayList<ZipCode> zipCodes = database.withinRadius(
                 zip1,
@@ -238,8 +238,10 @@ public class ZipCodeGUI extends JFrame implements ActionListener {
             result += "Total: " + zipCodes.size();
 
             results.setText(result);
-        } catch (Exception e) {
+        } catch (ZipCodeNotFoundException e) {
             results.setText("Zip code not found.");
+        } catch (Exception e) {
+            results.setText(e.getMessage());
         }
     }
 
@@ -249,6 +251,12 @@ public class ZipCodeGUI extends JFrame implements ActionListener {
             results.paintImmediately(results.getVisibleRect());
 
             String name = nameField.getText();
+
+            if (name == null || name.length() == 0) {
+                nameField.requestFocus();
+
+                throw new Exception("Enter a name");
+            }
 
             ArrayList<ZipCode> zipCodes = database.search(name);
 
@@ -277,7 +285,7 @@ public class ZipCodeGUI extends JFrame implements ActionListener {
             results.setText("Calculating...");
             results.paintImmediately(results.getVisibleRect());
 
-            int zip1 = this.checkValidInteger(zip1Field.getText());
+            int zip1 = this.checkValidInteger(zip1Field, "Zip 1");
 
             ZipCode zipCode = database.findZip(zip1);
 
@@ -294,9 +302,9 @@ public class ZipCodeGUI extends JFrame implements ActionListener {
 
             results.setText(output);
         } catch (ZipCodeNotFoundException e) {
-            results.setText(e.getMessage());
+            results.setText("Zip code not found.");
         } catch (Exception e) {
-            results.setText("An error has occured.");
+            results.setText(e.getMessage());
         }
     }
 
@@ -341,7 +349,7 @@ public class ZipCodeGUI extends JFrame implements ActionListener {
         loc.gridx = 1;
         loc.gridy = 4;
         loc.insets = new Insets(0, 0, 0, 1);
-        radiusLabel = new JLabel("radius");
+        radiusLabel = new JLabel("Radius");
         add(radiusLabel, loc);
 
         // Radius field
@@ -444,16 +452,19 @@ public class ZipCodeGUI extends JFrame implements ActionListener {
      * Check if the String contains a valid integer.  Display
      * an appropriate warning if it is not valid.
      *
-     * @param numStr - the String to be checked
+     * @param numField - the String to be checked
+     * @param name - the name of the field
      * @return true if valid
      ****************************************************************/
-    private int checkValidInteger(final String numStr) {
+    private int checkValidInteger(final JTextField numField, String name)
+        throws Exception
+    {
         try {
-            return Integer.parseInt(numStr);
+            return Integer.parseInt(numField.getText());
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Enter an integer");
+            numField.requestFocus();
 
-            return -1;
+            throw new Exception("Invalid number for " + name);
         }
     }
 
