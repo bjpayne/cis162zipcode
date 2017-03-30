@@ -144,6 +144,8 @@ public class ZipCodeDatabase {
      * @param filename - the filename of the data file.
      */
     public void readZipCodeData(final String filename) {
+        this.zipCodes = new ArrayList<>();
+
         Scanner inputFileStream = null;
         FileInputStream fileByteStream = null;
 
